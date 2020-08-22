@@ -1,9 +1,9 @@
 apiVersion: v1
-kind: Pod
+kind: Pod # リソース種別
 metadata:
-    name: test
-    namespace: default
-    labels:
+    name: test # 一意
+    namespace: default # 一意
+    labels: # 任意
         env: study
 spec:
     containers:
