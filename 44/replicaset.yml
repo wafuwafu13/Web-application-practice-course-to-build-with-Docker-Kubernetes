@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: sample
+spec:
+  replicas: 2 # 変更でスケールアウト
+  selector:
+    matchLabels:
+        app: web
+        env: study
+  template:
+    metadata: 
+        name: nginx
+        labels: 
+            app: web
+            env: study
+    spec:
+        containers: 
+        - name: nginx
+          image: nginx:1.17.2-alpine
+
+# < kubectl get all
+# NAME               READY   STATUS    RESTARTS   AGE
+# pod/sample-2k5lb   1/1     Running   0          34s
+# pod/sample-4dwdr   1/1     Running   0          34s
+
+# NAME                 TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+# service/kubernetes   ClusterIP   10.96.0.1    <none>        443/TCP   2d5h
+
+# NAME                     DESIRED   CURRENT   READY   AGE
+# replicaset.apps/sample   2         2         2       34s
+          
