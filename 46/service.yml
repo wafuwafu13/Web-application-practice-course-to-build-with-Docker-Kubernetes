@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: web
+    env: study
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.2-alpine
+
+---
+
+apiVersion: v1
+kind: Service
+metadata: 
+    name: web-svc
+spec:
+    type: NodePort # Nodeのポートにポートマッピング
+    selector: # Podのlabels
+        app: web
+        env: study
+    ports:
+    - port: 80 # サービス受付ポート
+      targetPort: 80 # コンテナ転送先ポート
+      nodePort: 30000 # ノード受付ポート
+
+# < kubectl get all
+# NAME        READY   STATUS    RESTARTS   AGE
+# pod/nginx   1/1     Running   0          11s
+
+# NAME                 TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+# service/kubernetes   ClusterIP   10.96.0.1        <none>        443/TCP        2d19h
+# service/web-svc      NodePort    10.111.140.205   <none>        80:30000/TCP   11s
+
+# http://localhost:30000/
