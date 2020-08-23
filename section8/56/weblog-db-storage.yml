@@ -14,7 +14,7 @@ spec:
     - ReadWriteMany
     hostPath:
         path: "/data/storage"
-        type: Directory
+        type: DirectoryOrCreate
     
 ---
 
@@ -33,3 +33,28 @@ spec:
     resources:
         requests:
             storage: 1Gi
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: mongodb
+    namespace: default
+    labels:
+        app: weblog
+        type: database
+spec:
+    containers: 
+    - name: mongodb
+      image: weblog-db:v1.0.0
+      imagePullPolicy: Never
+      command:
+      - "mongod"
+      - "--bind_ip_all"
+      volumeMounts:
+      - mountPath: "/data/db"
+        name: storage
+    volumes:
+    - name: storage
+      persistentVolumeClaim:
+        claimName: storage-claim
