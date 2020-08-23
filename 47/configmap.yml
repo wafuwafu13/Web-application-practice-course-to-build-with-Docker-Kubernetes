@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: ConfigMap # Kubernets上で利用する設定情報
+metadata:
+  name: sample-config
+data: # key: value
+    sample.cfg: |
+      user: wafuwafu13
+    type: "application"
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: sample
+spec:
+    containers:
+    - name: sample
+      image: nginx:1.17.2-alpine
+      env:
+      - name: TYPE
+        valueFrom:
+            configMapKeyRef:
+                name: sample-config
+                key: type # ConfigMapリソース中の対象キー名 TYPEという環境変数にマッピング
+      volumeMounts: # マウント先
+      - name: config-storage
+        mountPath: /home/nginx
+    volumes:
+    - name: config-storage
+      configMap: # 接続するConfigMapを指定
+        name: sample-config
+        items:
+        - key: sample.cfg
+          path: sample.cfg
+
+# / # cat /home/nginx/sample.cfg
+# user: wafuwafu13
+# / # env
+# KUBERNETES_SERVICE_PORT=443
+# KUBERNETES_PORT=tcp://10.96.0.1:443
+# HOSTNAME=sample
+# SHLVL=1
+# HOME=/root
+# PKG_RELEASE=1
+# TERM=xterm
+# KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1
+# NGINX_VERSION=1.17.2
+# PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# KUBERNETES_PORT_443_TCP_PORT=443
+# NJS_VERSION=0.3.3
+# KUBERNETES_PORT_443_TCP_PROTO=tcp
+# TYPE=application
+# KUBERNETES_SERVICE_PORT_HTTPS=443
+# KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443
+# KUBERNETES_SERVICE_HOST=10.96.0.1
+# PWD=/
+          
