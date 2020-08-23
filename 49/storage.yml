@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: volume-01
+spec:
+    storageClassName: slow
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+        storage: 1Gi
+    persistentVolumeReclaimPolicy: Retain # PVC削除後にPVを残す
+    hostPath: # ホスト上に保存
+        path: /data/storage
+        type: Directory
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: volume-claim
+spec: 
+    storageClassName: slow
+    accessModes:
+    - ReadWriteOnce
+    resources:
+        requests:
+            storage: 1Gi
+
+# < kubectl get pvc,pv
+# NAME                                 STATUS   VOLUME      CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+# persistentvolumeclaim/volume-claim   Bound    volume-01   1Gi        RWO            slow           24s
+
+# NAME                         CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                  STORAGECLASS   REASON   AGE
+# persistentvolume/volume-01   1Gi        RWO            Retain           Bound    default/volume-claim   slow                    24s
+            
