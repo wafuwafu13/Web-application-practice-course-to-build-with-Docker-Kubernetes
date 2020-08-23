@@ -33,7 +33,22 @@ spec:
     resources:
         requests:
             storage: 1Gi
+---
 
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mongo-secret
+    namespace: default
+    labels:
+        app: weblog
+        type: database
+type: Opaque
+data:
+  keyfile: RExnWnhDYVMvaDJieis2NGJhZy9OVVhTTWsrSmRJdEYvelcvZFI5WUtBbWQ1YkF3ZzRNQzlOcml6N1RzRERjQWliMGpjdnBFeHp1UldENVBQTTgwbko3V3h4NXZ3OWE5Wi96UmpDTjV0dytXbGdwdlFHYmRobTVBT3JjK1h1VVNBT3dlYm1WRFR1TnBLM1ZUSU4vdktHNXpvc2JENEY2OFJ5NXcwQmVxQVNTVXBuVVgwOHJUT0JJK3RvMWZ3Rlh1S1l1cWhCN2EwajJlQ1V0MlVKWjBhMlFKcktvdlhvZzgxci9xU3VsT213emxBU1d3ZTRKWWxKU3VGc29KQWNCZ0RrejBDOVNjV1J1aUF0cEF2b0tGR3FobW11MGZjZlFSQzVZb2ZhOW4xOFp4bE9WNHRjR0kzU1lBUi9JeEllYy9KSlhPU3hPYi9XeHE1VnVoaUo2eC9FYlNJcHVPcGdveW8wc2x0Q245WnptR3JQcUNIbDd0dGlJM3duK3R0ems4aWQxZHFBcTJWRnE4MGQ1ZG8zVzBOaFhndVpvdHg5Y1hOdGhXK2hteG9UVU1HTFZma2RVZjlmQ0RVMi9FYUxkQlVQRklhWThSNjVXc1l5aWY2RDN3c2orTkhZZWJYc2p4dDRhYnV6aThEZkh4UVRob2IvdVhhZ0g0cWxjcy8zdjhJZG1zZ01JY0FtY0RpWTg2RklDNFhjL2ZhM0tISllUR0hyd01mK3JBMnFrVEdtdTdGUEh6Y2tUUmh1clIwWUpXQkhsT0RXbE9DYXlGbHpFT0c5SktrdnphcVNyZjRkaDVwSytDVERBQjdBQkpORU1tcEJYYllOUmpnRitOQ213ZENEZUw5SlJvYms5M2tqb1pBZFVxSjBlNWdheVR3bStYd1ZCZU9PbzFZK1NMYU5PMzdWNk9laGJDakYrSXE3MnRrcnpjT215MEJ4Q0hwdHZxV0RjemFqZERzQU9qSklEcUpsaTA4em1aZ0M2aTVYVXcrUzBhUUNRYlNlajhTRGU4bDJKSHdwaUdVUytsb0RhS0ZZVkhXaTRMM3Q1RWZpUG52ZWduNXVsTk5SeExGTmxQL0gyblg0eVR6V2dqanhja2ZOZWJPclFSY1UvZFZpL1N4d2h5eTN4aFhyRVZ4eEhuQStSWE14bC9xM0xsOGdaMFJrbHVyd3VwcGZUaUthR1ZjWWN2U0lYNks5UWh3eUdZTGVDc3NKVld0bWJqWmI0QnZaRmJVU1FidGdKVUF2SWFyMk1XMnA2VVI2MUNyVmw3TFg3dFFnRkQ5TnBwVjE0K3QyVkdlZTB6S0I2elJFWnZTTFc4NVJzbEFWTlFBT1RVaEZDZlBNbFQ4M2oxbWdzdwo=
+  root_password: UGFzc3dvcmQ=
+  root_username: YWRtaW4=
+    
 ---
 apiVersion: v1
 kind: Pod
@@ -48,13 +63,36 @@ spec:
     - name: mongodb
       image: weblog-db:v1.0.0
       imagePullPolicy: Never
-      command:
+      args:
       - "mongod"
+      # - "--auth" Error: Authentication failed.
       - "--bind_ip_all"
+      env: 
+      - name: "MONGO_INITDB_ROOT_USERNAME"
+        valueFrom:
+            secretKeyRef:
+                name: mongo-secret
+                key: root_username
+      - name: "MONGO_INITDB_ROOT_PASSWORD"
+        valueFrom:
+            secretKeyRef:
+                name: mongo-secret
+                key: root_password
+      - name: "MONGO_INITDB_DATABASE"
+        value: "admin"
       volumeMounts:
-      - mountPath: "/data/db"
+      - mountPath: /data/db
         name: storage
+      - mountPath: /home/mongodb
+        name: secret
     volumes:
     - name: storage
       persistentVolumeClaim:
         claimName: storage-claim
+    - name: secret
+      secret:
+        secretName: mongo-secret
+        items: 
+        - key: keyfile
+          path: keyfile
+          mode: 0700
